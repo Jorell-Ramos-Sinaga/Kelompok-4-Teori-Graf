@@ -2,7 +2,6 @@ import collections
 import matplotlib.pyplot as plt
 import networkx as nx
 
-
 class FlowNetwork:
     def __init__(self, capacity_matrix: list[list[int]], node_labels: dict):
         self.N = len(capacity_matrix)
@@ -17,11 +16,17 @@ class FlowNetwork:
                 if capacity_matrix[u][v] > 0:
                     self.initial_edge_capacities[(u,v)] = capacity_matrix[u][v]
 
-
 def edmonds_karp_solver(network: FlowNetwork, source: int, sink: int) -> tuple[int, list]:
     N = network.N
     total_max_flow = 0
     path_trace = []
+
+    path_trace.append({
+        'total_flow_before': 0,
+        'path_flow': 0,
+        'path_edges': [],
+        'flow_state': network.flow_on_edges.copy()
+    })
 
     while True:
         parent = [-1] * N
@@ -83,7 +88,6 @@ def edmonds_karp_solver(network: FlowNetwork, source: int, sink: int) -> tuple[i
 
     return total_max_flow, path_trace
 
-
 def visualize_flow(network: FlowNetwork, path_trace: list, max_flow: int, source: int, sink: int):
     N = network.N
     node_labels = network.node_labels
@@ -111,14 +115,14 @@ def visualize_flow(network: FlowNetwork, path_trace: list, max_flow: int, source
         elif is_final_step:
             title = f"Graf Akhir: Aliran Maksimum = {max_flow} Ton"
             flow_state = step['flow_state']
-            highlight_color = 'red'
+            highlight_color = 'blue'
         else:
             flow_state = step['flow_state']
             path_flow = step['path_flow']
             path_edges = step['path_edges']
             total_flow_after = step['total_flow_before'] + path_flow
             title = f"Augmenting Path #{i}: Flow = {path_flow} (Total: {total_flow_after} Ton)"
-            highlight_color = 'red'
+            highlight_color = 'blue'
 
         edge_colors = []
         edge_widths = []
@@ -145,7 +149,6 @@ def visualize_flow(network: FlowNetwork, path_trace: list, max_flow: int, source
                  edge_labels_flow[(u,v)] = f"C={cap}"
             else:
                 edge_labels_flow[(u,v)] = f"{flow}/{cap}"
-
 
         nx.draw_networkx_nodes(G_visual, pos, node_size=2500, node_color='lightblue')
         nx.draw_networkx_labels(G_visual, pos, labels=node_labels, font_size=10, font_weight='bold')
